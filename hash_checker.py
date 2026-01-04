@@ -34,20 +34,29 @@ except FileNotFoundError:
     print(f"✗ Error: File '{args.file}' not found")
     exit(1)
 
-# Save hash to database if --save flag is used
+# If --save flag is used, attempt to save the file's hash
 if args.save:
+    # Boolean flag to track if the file is already in the database
     file_exists = False
+
+    # Open the hash database in read mode to check for existing entries
     with open("hash_database.txt", 'r') as db:
         for line in db:
+            # Split each line into filename and stored hash
             stored_file, stored_hash = line.strip().split('=')
+
+            # Check if the current file is already in the database
             if args.file == stored_file:
-                file_exists = True
-                break
+                file_exists = True  # Mark as found
+                break  # Stop checking further lines
+
+        # If the file was found, notify the user
         if file_exists:
             print(f"{args.file} has already been saved!")
         else:
-            with open("hash_database.txt",'a') as writer:
-                writer.write(f"{args.file}={hash_code}\n")
+            # If not found, open the database in append mode and save the new hash
+            with open("hash_database.txt", 'a') as writer:
+                writer.write(f"{args.file}={hash_code}\n")  # Append the file and hash
 
 # Verify file integrity if --verify flag is used
 if args.verify:
