@@ -1,5 +1,9 @@
 import argparse
 import hashlib
+import json
+
+from colorama import init, Fore, Back, Style
+init(autoreset=True)
 
 # Create argument parser
 parser = argparse.ArgumentParser(description="Hash Checker")
@@ -16,69 +20,69 @@ parser.add_argument('-v', '--verify', action='store_true', help="Verify the inte
 # Parse command-line arguments
 args = parser.parse_args()
 
-try:
-    # Open the file in binary mode and read data
-    if args.file is not None:
-        with open(args.file, "rb") as file:
-            data = file.read()
-
-        # Generate SHA-256 hash of the file
-        hash_file = hashlib.sha256(data)
-        hash_code = hash_file.hexdigest()
-
-        # Print the generated hash
-        print(hash_code)
-
-# Handle missing file error
-except FileNotFoundError:
-    print(f"✗ Error: File '{args.file}' not found")
-    exit(1)
 
 # If --save flag is used, attempt to save the file's hash
 if args.save:
+    with open(args.file, "rb") as file:
+        fileData = file.read()
+
+        # Generate SHA-256 hash of the file
+        hash_file = hashlib.sha256(fileData)
+        hash_code = hash_file.hexdigest()
+
+
+
+    try:
+        with open("hash_database.json", "r") as db:
+            content = db.read().strip()
+            if content:
+                data = json.loads(content)
+            else:
+                data = []
+    except FileNotFoundError:
+        data = []  # empty database if file doesn't exist
+
     # Boolean flag to track if the file is already in the database
-    file_exists = False
+    file_exists = any(item["filename"] == args.file for item in data)
 
-    # Open the hash database in read mode to check for existing entries
-    with open("hash_database.txt", 'r') as db:
-        for line in db:
-            # Split each line into filename and stored hash
-            stored_file, stored_hash = line.strip().split('=')
-
-            # Check if the current file is already in the database
-            if args.file == stored_file:
-                file_exists = True  # Mark as found
-                break  # Stop checking further lines
-
-        # If the file was found, notify the user
-        if file_exists:
-            print(f"{args.file} has already been saved!")
-        else:
-            # If not found, open the database in append mode and save the new hash
-            with open("hash_database.txt", 'a') as writer:
-                writer.write(f"{args.file}={hash_code}\n")  # Append the file and hash
+    if not file_exists:
+        data.append({"filename": args.file,"hash": hash_code})
+        with open("hash_database.json",'w') as db:
+            json.dump(data,db,indent=4)
+        print(Fore.GREEN + "Hash Code has been saved to the Data Base!")
+        # Print the generated hash
+        print(hash_code)
+    else:
+        print(Fore.RED + f"{args.file} has already been saved!")
 
 # Verify file integrity if --verify flag is used
 if args.verify:
+
+    with open(args.file, "rb") as file:
+        fileData = file.read()
+
+        # Generate SHA-256 hash of the file
+        hash_file = hashlib.sha256(fileData)
+        hash_code = hash_file.hexdigest()
+
     try:
-        # Open hash database
-        with open("hash_database.txt", 'r') as db_data:
-            for line in db_data:
-                # Split stored filename and hash
-                stored_file, stored_hash = line.strip().split('=')
-
-                # Match file name
-                if stored_file == args.file:
-                    # Compare hashes
-                    if stored_hash == hash_code:
-                        print("File integrity verified!")
-                    else:
-                        print("WARNING: File has been modified!")
-                    break
+        with open("hash_database.json", "r") as db:
+            content = db.read().strip()
+            if content:
+                data = json.loads(content)
             else:
-                # File not found in database
-                print("Error: File not found in database. Save it first with --save")
-
-    # Handle missing database file
+                data = []
     except FileNotFoundError:
-        print("The database file you are looking for is not found")
+        print(Fore.RED + "The database file you are looking for is not found")
+        exit(1)
+
+
+    for item in data:
+        if item["filename"] == args.file:
+            if item["hash"] == hash_code:
+                 print(Fore.GREEN + "File integrity verified!")
+            else:
+                print(Fore.RED + "WARNING: File has been modified!")
+            break
+    else:
+        print(Fore.RED  + "Error: File not found in database. Save it first with --save")
