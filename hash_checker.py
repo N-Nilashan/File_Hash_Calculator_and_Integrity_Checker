@@ -1,15 +1,22 @@
 import argparse
 import hashlib
 import json
+from datetime import datetime
+
 from colorama import init, Fore, Back, Style
+
 
 # Initialize colorama for colored console output
 init(autoreset=True)
 
 # Function to calculate SHA-256 hash of a file
 def get_file_hash(filename):
-    with open(filename, 'rb') as f:
-        return hashlib.sha256(f.read()).hexdigest()
+    try:
+        with open(filename, 'rb') as f:
+            return hashlib.sha256(f.read()).hexdigest()
+    except FileNotFoundError:
+        print(Fore.RED + f"Error: File '{filename}' not found")
+        exit(1)
 
 # Set up command-line argument parser
 parser = argparse.ArgumentParser(description="Hash Checker")
@@ -23,7 +30,8 @@ args = parser.parse_args()
 # If user wants to save the hash
 if args.save:
     hash_code = get_file_hash(args.file)  # Compute the hash
-    
+    timestamp = datetime.utcnow().isoformat() + 'Z'
+
     try:
         # Try to read existing database
         with open("hash_database.json", "r") as db:
@@ -35,9 +43,13 @@ if args.save:
     # Check if file already exists in database
     file_exists = any(item["filename"] == args.file for item in data)
 
+
+
     if not file_exists:
         # Append new file hash to database
-        data.append({"filename": args.file, "hash": hash_code})
+        data.append({
+            "filename": args.file, "hash": hash_code, "timestamp": timestamp
+        })
         with open("hash_database.json", 'w') as db:
             json.dump(data, db, indent=4)
         print(Fore.GREEN + "Hash Code has been saved to the Data Base!")
@@ -63,7 +75,7 @@ if args.verify:
     for item in data:
         if item["filename"] == args.file:
             if item["hash"] == hash_code:
-                print(Fore.GREEN + "File integrity verified!")
+                print(Fore.GREEN + f"File integrity verified! Saved at {item['timestamp']}")
             else:
                 print(Fore.RED + "WARNING: File has been modified!")
             break
