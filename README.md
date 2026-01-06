@@ -1,55 +1,51 @@
-Hash Checker (SHA-256)
+# Hash Checker (SHA-256)
 
-A simple Python CLI tool to generate, store, and verify SHA-256 file hashes.
-Use it to detect file tampering or unauthorized changes. No fluff.
+A simple Python CLI tool to generate, save, and verify SHA-256 hashes of files. Useful for detecting file modifications or ensuring integrity of important files.
 
-Features
+Features:
+- Generate SHA-256 hash for any file
+- Save hashes to a local JSON database with timestamps
+- Verify file integrity against saved hashes
+- Colored console output for clarity
+- Handles missing files gracefully
 
-Generate SHA-256 hash of any file
+Requirements:
+- Python 3.x
+- colorama library
 
-Save hashes to a local JSON database
-
-Verify file integrity against saved hash
-
-Colored terminal output for clarity
-
-Requirements
-
-Python 3.x
-
-colorama
-
-Install dependency:
-
+Install the dependency using pip:
 pip install colorama
 
-Usage
-Save a file hash
+Usage:
+
+1. Save a file hash:
 python hash_checker.py -f example.txt --save
+- Computes the SHA-256 hash of example.txt
+- Saves it to hash_database.json with a UTC timestamp
 
-Verify file integrity
+2. Verify file integrity:
 python hash_checker.py -f example.txt --verify
+- Computes the current SHA-256 hash of the file
+- Compares it against the saved hash in hash_database.json
+- Displays whether the file is intact or has been modified
+- Shows the timestamp of when the hash was saved
 
-How It Works
+JSON Database Format:
 
-Hashes are stored in hash_database.json
+[
+    {
+        "filename": "example.txt",
+        "hash": "abc123...",
+        "timestamp": "2026-01-06T22:45:30+00:00"
+    }
+]
 
-Each entry contains:
+- filename – the name of the file
+- hash – SHA-256 hash of the file
+- timestamp – UTC datetime when the hash was saved
 
-filename
+Notes:
+- This tool is meant for basic integrity checking, not enterprise forensics
 
-SHA-256 hash
-
-If the hash changes → file was modified
-
-Notes
-
-Always save a file before verifying it
-
-Deleting hash_database.json resets everything
-
-This tool is meant for basic integrity checking, not enterprise forensics
-
-License
-
-Free to use. Modify it. Break it. Improve it.
+License:
+Free to use, modify, and distribute.
