@@ -10,6 +10,7 @@ Generate SHA-256 hash of any file
 Save hashes to a local JSON database
 
 Verify file integrity against saved hash
+
 Colored terminal output for clarity
 
 Requirements

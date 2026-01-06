@@ -1,7 +1,7 @@
 import argparse
 import hashlib
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 from colorama import init, Fore, Back, Style
 
@@ -30,7 +30,7 @@ args = parser.parse_args()
 # If user wants to save the hash
 if args.save:
     hash_code = get_file_hash(args.file)  # Compute the hash
-    timestamp = datetime.utcnow().isoformat() + 'Z'
+    timestamp = datetime.now(timezone.utc).isoformat()
 
     try:
         # Try to read existing database
@@ -77,7 +77,7 @@ if args.verify:
             if item["hash"] == hash_code:
                 print(Fore.GREEN + f"File integrity verified! Saved at {item['timestamp']}")
             else:
-                print(Fore.RED + "WARNING: File has been modified!")
+                print(Fore.RED + f"WARNING: File has been modified!  Original save: {item['timestamp']}")
             break
     else:
         # File not in database
